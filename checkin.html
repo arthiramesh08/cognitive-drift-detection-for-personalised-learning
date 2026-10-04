@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Daily Check-in – LearnFlow AI{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+<div class="page-content" style="max-width:700px;margin:0 auto;">
+
+  <div class="page-header">
+    <h1 class="page-title">✅ Daily Study Check-in</h1>
+    <p class="page-subtitle">Log your study session so LearnFlow AI can update your recommendations.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      📋 How was your study session today?
+    </div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('checkin') }}" id="checkin-form" novalidate>
+
+        <!-- Study duration -->
+        <div class="form-group">
+          <label class="form-label" for="study_duration">⏱️ How many hours did you study?</label>
+          <input type="number" id="study_duration" name="study_duration" class="form-control"
+                 min="0" max="24" step="0.25" placeholder="e.g. 1.5" required>
+        </div>
+
+        <!-- Topics studied -->
+        <div class="form-group">
+          <label class="form-label" for="topics_studied">📚 What topics did you study?</label>
+          <select id="topics_studied" name="topics_studied" class="form-select">
+            {% for topic in topics %}
+            <option value="{{ topic }}">{{ topic }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Quiz score -->
+        <div class="form-group">
+          <label class="form-label" for="quiz_score">📊 Quiz Score (if you took one today, 0–100)</label>
+          <input type="number" id="quiz_score" name="quiz_score" class="form-control"
+                 min="0" max="100" step="1" placeholder="e.g. 75 (leave 0 if no quiz today)">
+        </div>
+
+        <!-- Questions attempted -->
+        <div class="form-group">
+          <label class="form-label" for="questions_attempted">🧩 Number of questions attempted</label>
+          <input type="number" id="questions_attempted" name="questions_attempted" class="form-control"
+                 min="0" max="100" step="1" placeholder="e.g. 10">
+        </div>
+
+        <!-- Response time -->
+        <div class="form-group">
+          <label class="form-label" for="response_time">⏰ Average time per question (seconds)</label>
+          <input type="number" id="response_time" name="response_time" class="form-control"
+                 min="5" max="300" step="1" placeholder="e.g. 45">
+        </div>
+
+        <!-- Difficulty -->
+        <div class="form-group">
+          <label class="form-label" for="difficulty_level">🎯 Difficulty of the material</label>
+          <select id="difficulty_level" name="difficulty_level" class="form-select">
+            <option value="easy">Easy – Felt comfortable</option>
+            <option value="medium" selected>Medium – Some challenges</option>
+            <option value="hard">Hard – Found it difficult</option>
+          </select>
+        </div>
+
+        <!-- Engagement rating -->
+        <div class="form-group">
+          <label class="form-label">😊 How engaged did you feel? (1 = Low, 5 = Very High)</label>
+          <input type="hidden" id="engagement_level" name="engagement_level" value="3" required>
+          <div class="rating-group" data-target="engagement_level">
+            <button type="button" class="rating-btn" data-value="1">😴 1</button>
+            <button type="button" class="rating-btn" data-value="2">😐 2</button>
+            <button type="button" class="rating-btn selected" data-value="3">🙂 3</button>
+            <button type="button" class="rating-btn" data-value="4">😊 4</button>
+            <button type="button" class="rating-btn" data-value="5">🤩 5</button>
+          </div>
+        </div>
+
+        <!-- Note -->
+        <div class="form-group">
+          <label class="form-label" for="note">📝 Optional Note (anything you want to remember)</label>
+          <textarea id="note" name="note" class="form-control" placeholder="e.g. Struggled with backpropagation, need to revise..."></textarea>
+        </div>
+
+        <div style="display:flex;gap:.75rem;">
+          <button type="submit" class="btn btn-primary btn-lg">✅ Save Check-in</button>
+          <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-lg">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Info box -->
+  <div class="alert alert-info" style="margin-top:1rem;">
+    ℹ️ Your check-in data is used by the ML model to detect changes in your learning pattern and generate personalized recommendations.
+  </div>
+
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Rating group handler
+document.querySelectorAll('.rating-group').forEach(group => {
+  group.querySelectorAll('.rating-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      group.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      const target = group.dataset.target;
+      const hiddenInput = document.getElementById(target);
+      if (hiddenInput) hiddenInput.value = btn.dataset.value;
+    });
+  });
+});
+</script>
+{% endblock %}

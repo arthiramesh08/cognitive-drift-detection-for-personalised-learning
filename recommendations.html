@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% block title %}Recommendations – LearnFlow AI{% endblock %}
+{% block meta_desc %}Your AI-powered personalized learning recommendations based on cognitive drift detection.{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+<div class="page-content">
+
+  <!-- ── Page Header ── -->
+  <div class="welcome-banner" style="margin-bottom:1.5rem;">
+    <div>
+      <h2>💡 Learning Recommendations</h2>
+      <p>AI-generated guidance based on your cognitive drift status and learning patterns.</p>
+      <div style="display:flex;align-items:center;gap:.75rem;margin-top:.75rem;">
+        <span class="drift-badge {{ 'stable' if drift_status == 'Stable' else ('warning' if drift_status == 'Mild Drift' else 'danger') }}">
+          {{ drift_icon }} {{ drift_status }}
+        </span>
+        <span style="opacity:.8;font-size:.85rem;">Current Learning Pattern</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Today's Recommendation (Fresh ML) ── -->
+  <div class="card" style="margin-bottom:1.5rem;border-left:4px solid var(--{{ drift_color }});">
+    <div class="card-header">
+      🤖 Today's AI Recommendation
+      <span class="drift-badge {{ drift_color }}" style="float:right;font-size:.72rem;">
+        {{ drift_icon }} {{ drift_status }}
+      </span>
+    </div>
+    <div class="card-body">
+      <div class="rec-card {{ 'stable' if drift_status == 'Stable' else ('warning' if drift_status == 'Mild Drift' else 'danger') }}">
+        <div class="rec-item">
+          <span class="icon">📌</span>
+          <div>
+            <div class="label">What to do</div>
+            <div class="value">{{ rec_dict.recommendation }}</div>
+          </div>
+        </div>
+        <div class="rec-item">
+          <span class="icon">💡</span>
+          <div>
+            <div class="label">Why</div>
+            <div class="value" style="font-weight:500;color:var(--text-secondary);">{{ rec_dict.reason }}</div>
+          </div>
+        </div>
+        <div class="rec-item">
+          <span class="icon">⏱️</span>
+          <div>
+            <div class="label">Suggested Time</div>
+            <div class="value">{{ rec_dict.suggested_time }}</div>
+          </div>
+        </div>
+        <div class="rec-item" style="margin-bottom:0;">
+          <span class="icon">🎯</span>
+          <div>
+            <div class="label">Next Step</div>
+            <div class="value" style="font-weight:600;">{{ rec_dict.next_action }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:1rem;display:flex;gap:.75rem;flex-wrap:wrap;">
+        <a href="{{ url_for('quiz') }}"   class="btn btn-primary btn-sm">🧩 Take a Quiz Now</a>
+        <a href="{{ url_for('checkin') }}" class="btn btn-secondary btn-sm">✅ Log Study Session</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Current Feature Indicators ── -->
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-header">🔍 Your Learning Indicators</div>
+    <div class="card-body">
+      <p style="font-size:.82rem;color:var(--text-secondary);margin-bottom:1.25rem;">
+        These metrics were used by the ML model to generate your recommendation.
+      </p>
+      {% set f = features %}
+      {% set indicators = [
+        ('📊 Quiz Score',                 f.quiz_score,           100, 70,  '%'),
+        ('⏱️ Study Hours / Day',          f.study_hours,          5,   2,   'h'),
+        ('💡 Engagement Level',           f.engagement_level,     5,   3.5, '/5'),
+        ('📅 Learning Consistency',       f.learning_consistency, 100, 60,  '%'),
+        ('🔑 Login Frequency (days/wk)',  f.login_frequency,      7,   4,   ' days'),
+        ('⚡ Avg Response Time',          f.response_time,        120, 50,  's'),
+      ] %}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem 2rem;">
+        {% for name, val, max_val, threshold, unit in indicators %}
+        {% set pct = ((val / max_val) * 100)|round(0)|int %}
+        {% set good = val <= threshold if name == '⚡ Avg Response Time' else val >= threshold %}
+        <div style="margin-bottom:.25rem;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:.4rem;">
+            <span style="font-size:.82rem;font-weight:600;">{{ name }}</span>
+            <span style="font-size:.82rem;font-weight:700;color:{{ 'var(--success)' if good else ('var(--warning)' if (val >= threshold * 0.7 and not name == '⚡ Avg Response Time') else 'var(--danger)') }};">
+              {{ val|round(1) }}{{ unit }}
+            </span>
+          </div>
+          <div class="progress" style="height:7px;">
+            {% if name == '⚡ Avg Response Time' %}
+              {% set bar_pct = [((120 - val) / 120 * 100)|round(0)|int, 0]|max %}
+            {% else %}
+              {% set bar_pct = [pct, 100]|min %}
+            {% endif %}
+            <div class="progress-bar {{ 'success' if good else 'warning' }}"
+                 data-width="{{ bar_pct }}" style="width:0%;height:7px;border-radius:10px;"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Recommendation History ── -->
+  <div class="card">
+    <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;">
+      📜 Recommendation History
+      <span style="font-size:.8rem;color:var(--text-secondary);">{{ all_recs|length }} total</span>
+    </div>
+    <div class="card-body" style="padding:0;">
+      {% if all_recs %}
+        {% for rec in all_recs %}
+        <div style="padding:1.25rem 1.5rem;border-bottom:{% if not loop.last %}1px solid var(--border){% else %}none{% endif %};">
+
+          <!-- Header row -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;">
+            <div style="display:flex;align-items:center;gap:.6rem;">
+              <span style="font-size:1.1rem;">
+                {% if rec.drift_status == 'Stable' %}✅
+                {% elif rec.drift_status == 'Mild Drift' %}⚠️
+                {% else %}🔔{% endif %}
+              </span>
+              <div>
+                <div style="font-weight:700;font-size:.95rem;">{{ rec.recommendation }}</div>
+                <div style="font-size:.75rem;color:var(--text-muted);">
+                  {{ rec.date.strftime('%B %d, %Y – %I:%M %p') if rec.date else '' }}
+                </div>
+              </div>
+            </div>
+            <span class="drift-badge {{ 'stable' if rec.drift_status == 'Stable' else ('warning' if rec.drift_status == 'Mild Drift' else 'danger') }}"
+                  style="font-size:.72rem;white-space:nowrap;">
+              {{ rec.drift_status }}
+            </span>
+          </div>
+
+          <!-- Details -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;">
+            {% if rec.reason %}
+            <div style="background:var(--surface-2);border-radius:8px;padding:.6rem .85rem;">
+              <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--text-secondary);margin-bottom:.25rem;">Why</div>
+              <div style="font-size:.82rem;color:var(--text-secondary);">{{ rec.reason }}</div>
+            </div>
+            {% endif %}
+            {% if rec.next_action %}
+            <div style="background:var(--surface-2);border-radius:8px;padding:.6rem .85rem;">
+              <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--text-secondary);margin-bottom:.25rem;">Next Step</div>
+              <div style="font-size:.82rem;font-weight:600;">{{ rec.next_action }}</div>
+            </div>
+            {% endif %}
+          </div>
+
+          {% if rec.suggested_time %}
+          <div style="margin-top:.6rem;display:flex;align-items:center;gap:.4rem;">
+            <span style="font-size:.82rem;">⏱️</span>
+            <span style="font-size:.8rem;color:var(--text-secondary);">Suggested time: <strong>{{ rec.suggested_time }}</strong></span>
+          </div>
+          {% endif %}
+
+        </div>
+        {% endfor %}
+      {% else %}
+      <div style="padding:2rem;text-align:center;">
+        <div style="font-size:2.5rem;margin-bottom:.75rem;">💡</div>
+        <div style="font-weight:600;margin-bottom:.5rem;">No recommendations yet</div>
+        <p style="color:var(--text-secondary);font-size:.875rem;">
+          Complete a quiz or daily check-in to generate your first personalized recommendation.
+        </p>
+        <div style="margin-top:1rem;display:flex;justify-content:center;gap:.75rem;">
+          <a href="{{ url_for('quiz') }}"    class="btn btn-primary btn-sm">🧩 Take a Quiz</a>
+          <a href="{{ url_for('checkin') }}" class="btn btn-secondary btn-sm">✅ Check-in</a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    {% if all_recs %}
+    <div class="card-footer">
+      <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-sm">📊 Back to Dashboard</a>
+      <a href="{{ url_for('analytics') }}" class="btn btn-primary btn-sm" style="float:right;">📈 View Analytics</a>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+</div>
+{% endblock %}

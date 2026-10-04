@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}LearnFlow AI{% endblock %} – Cognitive Drift Detection</title>
+  <meta name="description" content="{% block meta_desc %}LearnFlow AI uses machine learning to detect cognitive drift and personalize your learning journey.{% endblock %}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- ── Top Navigation Bar (app pages) ── -->
+{% if current_user.is_authenticated %}
+<nav class="app-navbar">
+  <a class="navbar-brand" href="{{ url_for('index') }}">
+    <div class="brand-icon">🧠</div>
+    LearnFlow AI
+  </a>
+
+  <div class="navbar-nav-links">
+    <a href="{{ url_for('dashboard') }}"       class="nav-link-item {% if request.endpoint == 'dashboard'       %}active{% endif %}">📊 Dashboard</a>
+    <a href="{{ url_for('learning') }}"        class="nav-link-item {% if request.endpoint == 'learning'        %}active{% endif %}">🗺️ Learn</a>
+    <a href="{{ url_for('quiz') }}"            class="nav-link-item {% if request.endpoint == 'quiz'            %}active{% endif %}">🧩 Quiz</a>
+    <a href="{{ url_for('checkin') }}"         class="nav-link-item {% if request.endpoint == 'checkin'         %}active{% endif %}">✅ Check-in</a>
+    <a href="{{ url_for('analytics') }}"       class="nav-link-item {% if request.endpoint == 'analytics'       %}active{% endif %}">📈 Progress</a>
+    <a href="{{ url_for('recommendations') }}" class="nav-link-item {% if request.endpoint == 'recommendations' %}active{% endif %}">💡 Recommendations</a>
+  </div>
+
+  <div class="navbar-user">
+    <div>
+      <div class="user-info" style="text-align:right;">
+        <div class="uname">{{ current_user.name }}</div>
+        <div class="uxp">⚡ {{ current_user.xp }} XP</div>
+      </div>
+    </div>
+    <a href="{{ url_for('profile') }}" style="text-decoration:none;">
+      <div class="user-avatar" title="Profile">{{ current_user.name[0].upper() }}</div>
+    </a>
+    <a href="{{ url_for('logout') }}" class="btn btn-secondary btn-sm" title="Logout" style="margin-left:.25rem;">
+      🚪
+    </a>
+  </div>
+</nav>
+{% endif %}
+
+<!-- ── Flash Messages ── -->
+<div style="{% if current_user.is_authenticated %}padding-top: 64px;{% endif %} position: relative; z-index: 500;">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div style="max-width:1280px; margin:0 auto; padding:.75rem 1.5rem 0;">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible">
+            {% if category == 'success' %}✅{% elif category == 'danger' %}❌{% elif category == 'info' %}ℹ️{% else %}⚠️{% endif %}
+            {{ message }}
+            <button class="btn-close" style="background:none;border:none;cursor:pointer;font-size:1rem;margin-left:auto;opacity:.6;" onclick="this.closest('.alert').remove()">✕</button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+</div>
+
+<!-- ── Page Content ── -->
+{% block content %}{% endblock %}
+
+<!-- ── Scripts ── -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

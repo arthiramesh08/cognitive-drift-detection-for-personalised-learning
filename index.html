@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block title %}LearnFlow AI – Cognitive Drift Detection & Personalized Learning{% endblock %}
+{% block meta_desc %}An AI-powered personalized learning platform for college students. Detects cognitive drift and recommends the best next study action.{% endblock %}
+
+{% block content %}
+<!-- ── Landing Navbar ── -->
+<nav class="landing-nav">
+  <div class="navbar-brand">
+    <div class="brand-icon">🧠</div>
+    LearnFlow AI
+  </div>
+  <div style="display:flex; align-items:center; gap:.75rem;">
+    <a href="{{ url_for('login') }}"    class="btn btn-secondary btn-sm">Login</a>
+    <a href="{{ url_for('register') }}" class="btn btn-primary   btn-sm">Get Started</a>
+  </div>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div style="max-width:1280px; margin:0 auto; width:100%; display:grid; grid-template-columns:1fr 1fr; gap:3rem; align-items:center;">
+    <div class="hero-content">
+      <div class="hero-tag">🤖 AI-Powered Learning Platform</div>
+      <h1>Cognitive Drift Detection<br>for <span>Personalized</span> Learning</h1>
+      <p>
+        LearnFlow AI monitors your learning behavior — quiz performance, study time,
+        response patterns, and engagement — to detect changes in your learning
+        and recommend exactly what to study next.
+      </p>
+      <div class="hero-buttons">
+        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">🚀 Start Learning Free</a>
+        <a href="{{ url_for('login') }}"   class="btn btn-outline-primary btn-lg">
+          🔑 Demo Login
+        </a>
+      </div>
+      <p style="margin-top:1rem; font-size:.8rem; color:var(--text-muted);">
+        Demo: arthi@demo.com / demo123
+      </p>
+    </div>
+
+    <!-- Floating preview cards -->
+    <div style="position:relative; display:flex; flex-direction:column; gap:1rem;">
+      <div class="floating-card" style="animation-delay:0s;">
+        <div style="width:42px;height:42px;background:#EEF2FF;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;">🧠</div>
+        <div>
+          <div style="font-size:.8rem;color:var(--text-muted);font-weight:600;">Cognitive Drift</div>
+          <div style="font-size:1rem;font-weight:800;color:var(--warning);">⚠️ Mild Drift Detected</div>
+        </div>
+      </div>
+      <div class="floating-card" style="animation-delay:.5s; margin-left:2rem;">
+        <div style="width:42px;height:42px;background:#ECFDF5;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;">💡</div>
+        <div>
+          <div style="font-size:.8rem;color:var(--text-muted);font-weight:600;">Recommendation</div>
+          <div style="font-size:.9rem;font-weight:700;">Revise Machine Learning Basics</div>
+        </div>
+      </div>
+      <div class="floating-card" style="animation-delay:1s;">
+        <div style="width:42px;height:42px;background:#FEF3C7;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;">🔥</div>
+        <div>
+          <div style="font-size:.8rem;color:var(--text-muted);font-weight:600;">Learning Streak</div>
+          <div style="font-size:1.1rem;font-weight:800;color:var(--warning);">5 Days 🔥</div>
+        </div>
+      </div>
+      <div class="floating-card" style="animation-delay:1.5s; margin-left:1rem;">
+        <div style="width:42px;height:42px;background:#F5F3FF;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;">🏆</div>
+        <div>
+          <div style="font-size:.8rem;color:var(--text-muted);font-weight:600;">XP Earned</div>
+          <div style="font-size:1.1rem;font-weight:800;color:var(--secondary);">1,240 XP ⚡</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Stats Row ── -->
+<section style="background:var(--surface); padding:3rem 2rem; border-top:1px solid var(--border);">
+  <div style="max-width:1000px; margin:0 auto;">
+    <div class="hero-stats">
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:1.5rem; text-align:center;">
+        <div class="hero-stat"><div class="num">3</div><div class="text">ML Models Compared</div></div>
+        <div class="hero-stat"><div class="num">10+</div><div class="text">Drift Indicators Tracked</div></div>
+        <div class="hero-stat"><div class="num">5</div><div class="text">CS/ML Subjects</div></div>
+        <div class="hero-stat"><div class="num">100%</div><div class="text">Student Friendly</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Features ── -->
+<section style="padding:4rem 2rem; background:var(--bg);">
+  <div style="max-width:1280px; margin:0 auto;">
+    <div style="text-align:center; margin-bottom:2.5rem;">
+      <h2 style="font-size:1.9rem;font-weight:800;">Everything you need to learn smarter</h2>
+      <p style="color:var(--text-secondary);margin-top:.5rem;">Built for college students, powered by machine learning</p>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:1.25rem;">
+      <div class="feature-card">
+        <div class="feature-icon">🧠</div>
+        <h4>Cognitive Drift Detection</h4>
+        <p>Random Forest classifier analyzes your quiz scores, study time, and engagement to detect shifts in your learning pattern.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💡</div>
+        <h4>Personalized Recommendations</h4>
+        <p>Every recommendation comes with WHAT to study, WHY it was suggested, and HOW LONG to spend on it.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🗺️</div>
+        <h4>Adaptive Learning Path</h4>
+        <p>A step-by-step learning journey from Python basics to advanced ML topics, unlocked based on your performance.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🧩</div>
+        <h4>Smart Quiz Module</h4>
+        <p>Topic-wise MCQ quizzes with 3 difficulty levels, a built-in timer, and instant analysis of strong and weak areas.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📈</div>
+        <h4>Progress Analytics</h4>
+        <p>Visual charts showing your weekly study hours, quiz score trend, topic performance, and engagement levels.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏆</div>
+        <h4>Gamification</h4>
+        <p>Earn XP, maintain streaks, and unlock achievement badges as you progress through your learning journey.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── How It Works ── -->
+<section style="padding:4rem 2rem; background:var(--surface); border-top:1px solid var(--border);">
+  <div style="max-width:900px; margin:0 auto; text-align:center;">
+    <h2 style="font-size:1.9rem;font-weight:800;margin-bottom:.5rem;">How Cognitive Drift Detection Works</h2>
+    <p style="color:var(--text-secondary);margin-bottom:2.5rem;">Our ML pipeline turns your study behavior into actionable insights</p>
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;text-align:center;">
+      <div>
+        <div style="font-size:2.5rem;margin-bottom:.75rem;">📊</div>
+        <h4 style="font-weight:700;margin-bottom:.4rem;">1. Collect Data</h4>
+        <p style="font-size:.85rem;color:var(--text-secondary);">Quiz scores, study hours, response time, engagement</p>
+      </div>
+      <div>
+        <div style="font-size:2.5rem;margin-bottom:.75rem;">🤖</div>
+        <h4 style="font-weight:700;margin-bottom:.4rem;">2. ML Analysis</h4>
+        <p style="font-size:.85rem;color:var(--text-secondary);">Random Forest classifies your learning drift level</p>
+      </div>
+      <div>
+        <div style="font-size:2.5rem;margin-bottom:.75rem;">🎯</div>
+        <h4 style="font-weight:700;margin-bottom:.4rem;">3. Detect Drift</h4>
+        <p style="font-size:.85rem;color:var(--text-secondary);">Stable, Mild Drift, or High Drift classification</p>
+      </div>
+      <div>
+        <div style="font-size:2.5rem;margin-bottom:.75rem;">💡</div>
+        <h4 style="font-weight:700;margin-bottom:.4rem;">4. Recommend</h4>
+        <p style="font-size:.85rem;color:var(--text-secondary);">Personalized next study action with clear reasoning</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ── -->
+<section style="padding:4rem 2rem; background:linear-gradient(135deg,var(--primary),var(--secondary)); text-align:center;">
+  <h2 style="color:#fff;font-size:2rem;font-weight:800;margin-bottom:.75rem;">Ready to learn smarter?</h2>
+  <p style="color:rgba(255,255,255,.85);margin-bottom:1.75rem;">Join LearnFlow AI and let cognitive drift detection guide your study sessions.</p>
+  <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+    <a href="{{ url_for('register') }}" class="btn btn-lg" style="background:#fff;color:var(--primary);">🚀 Create Free Account</a>
+    <a href="{{ url_for('login') }}"    class="btn btn-lg" style="background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.4);">🔑 Demo Login</a>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer style="background:var(--surface);border-top:1px solid var(--border);padding:1.5rem 2rem;text-align:center;">
+  <p style="color:var(--text-muted);font-size:.83rem;">
+    🧠 LearnFlow AI – Cognitive Drift Detection for Personalized Learning &nbsp;|&nbsp;
+    Built with Python, Flask & scikit-learn &nbsp;|&nbsp; AI/ML College Project
+  </p>
+</footer>
+{% endblock %}

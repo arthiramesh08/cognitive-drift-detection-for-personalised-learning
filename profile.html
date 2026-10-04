@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% block title %}Profile – LearnFlow AI{% endblock %}
+{% block meta_desc %}View and edit your LearnFlow AI student profile, badges, and account settings.{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+<div class="page-content" style="max-width:960px;margin:0 auto;">
+
+  <!-- ── Profile Hero ── -->
+  <div style="background:linear-gradient(135deg,var(--primary),var(--secondary));border-radius:var(--radius-xl);padding:2rem 2.5rem;color:#fff;margin-bottom:1.5rem;display:flex;align-items:center;gap:1.75rem;">
+    <!-- Avatar -->
+    <div style="width:80px;height:80px;background:rgba(255,255,255,.25);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2.25rem;font-weight:800;border:3px solid rgba(255,255,255,.5);flex-shrink:0;">
+      {{ user.name[0].upper() }}
+    </div>
+    <!-- Info -->
+    <div style="flex:1;">
+      <div style="font-size:1.6rem;font-weight:800;line-height:1.2;">{{ user.name }}</div>
+      <div style="opacity:.85;margin-top:.25rem;font-size:.95rem;">{{ user.email }}</div>
+      <div style="margin-top:.6rem;display:flex;gap:.6rem;flex-wrap:wrap;">
+        <span style="background:rgba(255,255,255,.2);border-radius:20px;padding:.3rem .8rem;font-size:.8rem;font-weight:600;">
+          📚 {{ user.subject }}
+        </span>
+        <span style="background:rgba(255,255,255,.2);border-radius:20px;padding:.3rem .8rem;font-size:.8rem;font-weight:600;">
+          ⚡ {{ user.xp }} XP
+        </span>
+        <span style="background:rgba(255,255,255,.2);border-radius:20px;padding:.3rem .8rem;font-size:.8rem;font-weight:600;">
+          🔥 {{ streak }}-Day Streak
+        </span>
+      </div>
+    </div>
+    <!-- Level Badge -->
+    <div style="text-align:center;background:rgba(255,255,255,.15);border-radius:var(--radius-lg);padding:1rem 1.5rem;flex-shrink:0;">
+      {% set level = (user.xp // 100) + 1 %}
+      <div style="font-size:2rem;font-weight:800;line-height:1;">{{ level }}</div>
+      <div style="font-size:.75rem;opacity:.85;margin-top:.2rem;">LEVEL</div>
+      <div style="margin-top:.5rem;font-size:.7rem;opacity:.8;">{{ user.xp % 100 }}/100 XP to next</div>
+      <!-- XP bar -->
+      <div style="height:6px;background:rgba(255,255,255,.25);border-radius:10px;margin-top:.5rem;width:100px;">
+        <div style="height:6px;background:#fff;border-radius:10px;width:{{ user.xp % 100 }}%;transition:width .8s ease;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Account Stats ── -->
+  <div class="stat-grid" style="margin-bottom:1.5rem;">
+    <div class="stat-card">
+      <div class="stat-icon orange">🔥</div>
+      <div class="stat-value" data-counter data-target="{{ streak }}">{{ streak }}</div>
+      <div class="stat-label">Day Streak</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon blue">⚡</div>
+      <div class="stat-value" data-counter data-target="{{ user.xp }}">{{ user.xp }}</div>
+      <div class="stat-label">Total XP</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon purple">🧩</div>
+      <div class="stat-value" data-counter data-target="{{ quiz_count }}">{{ quiz_count }}</div>
+      <div class="stat-label">Quizzes Done</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green">🏆</div>
+      <div class="stat-value" data-counter data-target="{{ badges|length }}">{{ badges|length }}</div>
+      <div class="stat-label">Badges Earned</div>
+    </div>
+  </div>
+
+  <!-- ── Two Column Layout ── -->
+  <div style="display:grid;grid-template-columns:1fr 1.2fr;gap:1.25rem;align-items:start;">
+
+    <!-- Left: Edit Profile -->
+    <div>
+      <div class="card" style="margin-bottom:1.25rem;">
+        <div class="card-header">✏️ Edit Profile</div>
+        <div class="card-body">
+          <form method="POST" action="{{ url_for('profile') }}" id="profile-form">
+            <div style="margin-bottom:1rem;">
+              <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:.4rem;color:var(--text-secondary);">Full Name</label>
+              <input type="text" name="name" id="profile-name" value="{{ user.name }}" required
+                     style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:.95rem;font-family:inherit;background:var(--surface);transition:var(--transition);">
+            </div>
+            <div style="margin-bottom:1rem;">
+              <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:.4rem;color:var(--text-secondary);">Email Address</label>
+              <input type="email" value="{{ user.email }}" disabled
+                     style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:.95rem;font-family:inherit;background:var(--surface-2);color:var(--text-secondary);cursor:not-allowed;">
+              <div style="font-size:.75rem;color:var(--text-muted);margin-top:.35rem;">Email cannot be changed.</div>
+            </div>
+            <div style="margin-bottom:1.25rem;">
+              <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:.4rem;color:var(--text-secondary);">Primary Subject</label>
+              <select name="subject" id="profile-subject"
+                      style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:.95rem;font-family:inherit;background:var(--surface);transition:var(--transition);">
+                {% for t in topics %}
+                <option value="{{ t }}" {% if t == user.subject %}selected{% endif %}>{{ t }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full" id="save-profile-btn">
+              💾 Save Changes
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Account Info -->
+      <div class="card">
+        <div class="card-header">ℹ️ Account Info</div>
+        <div class="card-body">
+          <div style="display:flex;flex-direction:column;gap:.75rem;">
+            <div style="display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border);">
+              <span style="color:var(--text-secondary);font-size:.875rem;">Member since</span>
+              <span style="font-weight:600;font-size:.875rem;">
+                {{ user.created_at.strftime('%B %d, %Y') if user.created_at else '–' }}
+              </span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border);">
+              <span style="color:var(--text-secondary);font-size:.875rem;">Last login</span>
+              <span style="font-weight:600;font-size:.875rem;">
+                {{ user.last_login.strftime('%b %d, %Y') if user.last_login else '–' }}
+              </span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border);">
+              <span style="color:var(--text-secondary);font-size:.875rem;">Current level</span>
+              <span style="font-weight:700;font-size:.875rem;color:var(--primary);">Level {{ (user.xp // 100) + 1 }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:.5rem 0;">
+              <span style="color:var(--text-secondary);font-size:.875rem;">XP to next level</span>
+              <span style="font-weight:600;font-size:.875rem;color:var(--warning);">{{ 100 - (user.xp % 100) }} XP</span>
+            </div>
+          </div>
+          <div style="margin-top:1.25rem;">
+            <a href="{{ url_for('logout') }}" class="btn btn-secondary btn-full btn-sm">🚪 Sign Out</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Badges -->
+    <div>
+      <div class="card">
+        <div class="card-header">🏆 Badge Collection</div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.85rem;">
+            {% for badge in all_badges %}
+            <div style="border:1.5px solid {{ 'var(--warning)' if badge.earned else 'var(--border)' }};border-radius:var(--radius-md);padding:.9rem 1rem;
+                        background:{{ 'linear-gradient(135deg,#FFF9E6,#FFFBE8)' if badge.earned else 'var(--surface-2)' }};
+                        opacity:{{ '1' if badge.earned else '0.55' }};
+                        transition:var(--transition);position:relative;">
+              {% if badge.earned %}
+              <div style="position:absolute;top:.4rem;right:.5rem;font-size:.6rem;font-weight:700;background:var(--warning);color:#fff;border-radius:10px;padding:.15rem .4rem;">✓ EARNED</div>
+              {% endif %}
+              <div style="font-size:1.75rem;line-height:1;margin-bottom:.4rem;">{{ badge.icon }}</div>
+              <div style="font-weight:700;font-size:.88rem;margin-bottom:.2rem;">{{ badge.name }}</div>
+              <div style="font-size:.75rem;color:var(--text-secondary);">{{ badge.desc }}</div>
+            </div>
+            {% endfor %}
+          </div>
+
+          {% if badges %}
+          <div style="margin-top:1.25rem;padding:1rem;background:linear-gradient(135deg,#EEF2FF,#F5F3FF);border-radius:var(--radius-md);text-align:center;">
+            <div style="font-weight:700;font-size:.95rem;color:var(--primary);">
+              🎉 {{ badges|length }} / {{ all_badges|length }} Badges Earned!
+            </div>
+            <div style="font-size:.8rem;color:var(--text-secondary);margin-top:.25rem;">
+              Keep studying to unlock more!
+            </div>
+          </div>
+          {% else %}
+          <div style="margin-top:1.25rem;text-align:center;padding:1rem 0;">
+            <p style="color:var(--text-secondary);font-size:.875rem;">Complete quizzes and maintain streaks to earn your first badge! 🌟</p>
+            <a href="{{ url_for('quiz') }}" class="btn btn-primary btn-sm" style="margin-top:.75rem;">🧩 Take a Quiz Now</a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Quick actions -->
+      <div class="card" style="margin-top:1.25rem;">
+        <div class="card-header">⚡ Quick Actions</div>
+        <div class="card-body">
+          <div style="display:flex;flex-direction:column;gap:.6rem;">
+            <a href="{{ url_for('quiz') }}"           class="btn btn-primary btn-full btn-sm">🧩 Take a Quiz</a>
+            <a href="{{ url_for('checkin') }}"        class="btn btn-secondary btn-full btn-sm">✅ Daily Check-in</a>
+            <a href="{{ url_for('analytics') }}"      class="btn btn-secondary btn-full btn-sm">📈 View Analytics</a>
+            <a href="{{ url_for('recommendations') }}" class="btn btn-secondary btn-full btn-sm">💡 Recommendations</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Input focus styles
+document.querySelectorAll('input:not([disabled]), select').forEach(el => {
+  el.addEventListener('focus', () => { el.style.borderColor = 'var(--primary)'; el.style.boxShadow = '0 0 0 3px rgba(79,70,229,.15)'; });
+  el.addEventListener('blur',  () => { el.style.borderColor = 'var(--border)';  el.style.boxShadow = 'none'; });
+});
+</script>
+{% endblock %}

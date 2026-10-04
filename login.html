@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Login – LearnFlow AI{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card">
+    <a href="{{ url_for('index') }}" class="auth-logo">
+      <div class="icon">🧠</div> LearnFlow AI
+    </a>
+    <h1 class="auth-title">Welcome back!</h1>
+    <p class="auth-subtitle">Sign in to continue your personalized learning journey.</p>
+
+    <!-- Demo hint -->
+    <div class="demo-hint">
+      🎓 <strong>Demo Account:</strong> arthi@demo.com &nbsp;/&nbsp; demo123
+    </div>
+
+    <form method="POST" action="{{ url_for('login') }}" novalidate>
+      <div class="form-group">
+        <label class="form-label" for="email">Email Address</label>
+        <input type="email" id="email" name="email" class="form-control"
+               placeholder="you@example.com" required autocomplete="email">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">
+          Password
+          <a href="#" style="float:right;font-size:.8rem;font-weight:500;">Forgot password?</a>
+        </label>
+        <div class="password-wrapper">
+          <input type="password" id="password" name="password" class="form-control"
+                 placeholder="••••••••" required autocomplete="current-password">
+          <button type="button" class="password-toggle">👁️</button>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:1.25rem;">
+        <input type="checkbox" id="remember" name="remember" style="accent-color:var(--primary);">
+        <label for="remember" style="font-size:.875rem;cursor:pointer;">Remember me</label>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full btn-lg">🔑 Sign In</button>
+    </form>
+
+    <p style="text-align:center;margin-top:1.25rem;font-size:.875rem;color:var(--text-secondary);">
+      Don't have an account?
+      <a href="{{ url_for('register') }}" style="font-weight:600;">Create one →</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Quiz – LearnFlow AI{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+<div class="page-content">
+
+  <div class="page-header">
+    <h1 class="page-title">🧩 Quiz Module</h1>
+    <p class="page-subtitle">Test your knowledge and identify areas for improvement.</p>
+  </div>
+
+  <!-- ── Topic / Difficulty Selector ── -->
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-body">
+      <form method="GET" action="{{ url_for('quiz') }}" style="display:flex;gap:1rem;align-items:flex-end;flex-wrap:wrap;">
+        <div class="form-group" style="flex:1;min-width:180px;margin-bottom:0;">
+          <label class="form-label" for="topic">Topic</label>
+          <select name="topic" id="topic" class="form-select" onchange="this.form.submit()">
+            {% for t in topics %}
+            <option value="{{ t }}" {% if t == topic %}selected{% endif %}>{{ t }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group" style="flex:1;min-width:150px;margin-bottom:0;">
+          <label class="form-label" for="difficulty">Difficulty</label>
+          <select name="difficulty" id="difficulty" class="form-select" onchange="this.form.submit()">
+            <option value="easy"   {% if difficulty == 'easy'   %}selected{% endif %}>🟢 Easy</option>
+            <option value="medium" {% if difficulty == 'medium' %}selected{% endif %}>🟡 Medium</option>
+            <option value="hard"   {% if difficulty == 'hard'   %}selected{% endif %}>🔴 Hard</option>
+          </select>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Quiz Form ── -->
+  <form id="quiz-form" method="POST" action="{{ url_for('quiz_submit') }}">
+    <input type="hidden" name="topic"      value="{{ topic }}">
+    <input type="hidden" name="difficulty" value="{{ difficulty }}">
+
+    <!-- Timer & header -->
+    <div class="quiz-header">
+      <div>
+        <strong>{{ topic }}</strong> &nbsp;·&nbsp;
+        <span style="color:var(--text-secondary);font-size:.875rem;">{{ difficulty.title() }} · {{ questions|length }} Questions</span>
+      </div>
+      <div class="timer-box">
+        ⏱ <span id="quiz-timer" data-seconds="300">05:00</span>
+      </div>
+    </div>
+
+    <!-- Questions -->
+    {% for q in questions %}
+    {% set q_idx = loop.index0 %}
+    <div class="quiz-question-card">
+      <div class="question-number">Question {{ loop.index }} of {{ questions|length }}</div>
+      <div class="question-text">{{ q.q }}</div>
+      {% for option in q.options %}
+      {% set opt_idx = loop.index0 %}
+      <label class="option-label" for="q{{ q_idx }}_{{ opt_idx }}">
+        <input type="radio" name="q{{ q_idx }}" value="{{ opt_idx }}" id="q{{ q_idx }}_{{ opt_idx }}">
+        <span class="option-dot"></span>
+        <span>{{ option }}</span>
+      </label>
+      {% endfor %}
+    </div>
+    {% endfor %}
+
+    <div style="display:flex;gap:1rem;margin-top:1rem;">
+      <button type="submit" class="btn btn-primary btn-lg">📤 Submit Quiz</button>
+      <a href="{{ url_for('quiz') }}" class="btn btn-secondary btn-lg">↩ Change Topic</a>
+    </div>
+  </form>
+
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Fix option label radio selection – re-map using question index
+document.querySelectorAll('.quiz-question-card').forEach((card, qIdx) => {
+  card.querySelectorAll('.option-label').forEach((label, optIdx) => {
+    const radio = label.querySelector('input[type="radio"]');
+    if (radio) {
+      radio.name = `q${qIdx}`;
+      radio.value = optIdx;
+      radio.id = `q${qIdx}_${optIdx}`;
+    }
+    label.addEventListener('click', () => {
+      card.querySelectorAll('.option-label').forEach(l => l.classList.remove('selected'));
+      label.classList.add('selected');
+      label.querySelector('input[type="radio"]').checked = true;
+    });
+  });
+});
+</script>
+{% endblock %}

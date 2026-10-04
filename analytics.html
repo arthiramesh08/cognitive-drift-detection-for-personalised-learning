@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+{% block title %}Analytics – LearnFlow AI{% endblock %}
+{% block meta_desc %}View your learning analytics, quiz trends, topic performance and engagement metrics.{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+<div class="page-content">
+
+  <!-- ── Page Header ── -->
+  <div class="welcome-banner" style="margin-bottom:1.5rem;">
+    <div>
+      <h2>📈 Learning Analytics</h2>
+      <p>Your performance overview for the last 30 days — powered by real data.</p>
+    </div>
+    <div style="display:flex;gap:.75rem;flex-wrap:wrap;">
+      <a href="{{ url_for('quiz') }}"   class="btn btn-primary btn-sm">🧩 Take a Quiz</a>
+      <a href="{{ url_for('checkin') }}" class="btn btn-secondary btn-sm">✅ Log Session</a>
+    </div>
+  </div>
+
+  <!-- ── Summary Stat Cards ── -->
+  <div class="stat-grid" style="margin-bottom:1.75rem;">
+    <div class="stat-card">
+      <div class="stat-icon orange">🔥</div>
+      <div class="stat-value" data-counter data-target="{{ streak }}">{{ streak }}</div>
+      <div class="stat-label">Current Streak</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon blue">⏱️</div>
+      <div class="stat-value" data-counter data-target="{{ total_hours }}" data-float="true">{{ total_hours }}</div>
+      <div class="stat-label">Total Study Hours</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon purple">📊</div>
+      <div class="stat-value" data-counter data-target="{{ avg_score }}" data-float="true">{{ avg_score }}</div>
+      <div class="stat-label">Avg Quiz Score (%)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green">🧩</div>
+      <div class="stat-value" data-counter data-target="{{ quiz_count }}">{{ quiz_count }}</div>
+      <div class="stat-label">Quizzes Completed</div>
+    </div>
+  </div>
+
+  <!-- ── Charts Row 1 ── -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem;">
+
+    <!-- Weekly Study Hours -->
+    <div class="card">
+      <div class="card-header">⏱️ Study Hours – Last 7 Days</div>
+      <div class="card-body" style="padding-bottom:1rem;">
+        <div style="height:200px;">
+          <canvas id="weeklyHoursChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quiz Score Trend -->
+    <div class="card">
+      <div class="card-header">📈 Quiz Score Trend</div>
+      <div class="card-body" style="padding-bottom:1rem;">
+        <div style="height:200px;">
+          <canvas id="quizTrendChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Charts Row 2 ── -->
+  <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:1.25rem;margin-bottom:1.25rem;">
+
+    <!-- Topic Performance -->
+    <div class="card">
+      <div class="card-header">🎯 Topic Performance</div>
+      <div class="card-body" style="padding-bottom:1rem;">
+        {% if topic_avg %}
+        <div style="height:{{ [topic_avg|length * 48, 200]|max }}px;max-height:320px;">
+          <canvas id="topicPerfChart"></canvas>
+        </div>
+        {% else %}
+        <p style="color:var(--text-secondary);font-size:.875rem;padding:.5rem 0;">
+          No quiz data yet. <a href="{{ url_for('quiz') }}">Take your first quiz →</a>
+        </p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Engagement Trend -->
+    <div class="card">
+      <div class="card-header">💡 Engagement Trend (7 Days)</div>
+      <div class="card-body" style="padding-bottom:1rem;">
+        <div style="height:200px;">
+          <canvas id="engagementChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Topic Breakdown Table ── -->
+  <div class="card" style="margin-bottom:1.25rem;">
+    <div class="card-header">📋 Topic-by-Topic Breakdown</div>
+    <div class="card-body" style="padding:0;">
+      {% if topic_avg %}
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr style="border-bottom:2px solid var(--border);background:var(--surface-2);">
+            <th style="padding:.75rem 1.5rem;text-align:left;font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);">Topic</th>
+            <th style="padding:.75rem 1rem;text-align:center;font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);">Avg Score</th>
+            <th style="padding:.75rem 1rem;text-align:center;font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);">Status</th>
+            <th style="padding:.75rem 1.5rem;text-align:left;font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);">Progress</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for topic, avg in topic_avg.items() %}
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:.85rem 1.5rem;font-weight:600;">{{ topic }}</td>
+            <td style="padding:.85rem 1rem;text-align:center;">
+              <span style="font-weight:700;font-size:1.05rem;color:{{ 'var(--success)' if avg >= 70 else ('var(--warning)' if avg >= 50 else 'var(--danger)') }};">
+                {{ avg }}%
+              </span>
+            </td>
+            <td style="padding:.85rem 1rem;text-align:center;">
+              {% if avg >= 70 %}
+              <span class="drift-badge stable" style="font-size:.72rem;">✅ Strong</span>
+              {% elif avg >= 50 %}
+              <span class="drift-badge warning" style="font-size:.72rem;">⚠️ Improving</span>
+              {% else %}
+              <span class="drift-badge danger" style="font-size:.72rem;">📌 Needs Work</span>
+              {% endif %}
+            </td>
+            <td style="padding:.85rem 1.5rem;">
+              <div class="progress" style="height:8px;">
+                <div class="progress-bar {{ 'success' if avg >= 70 else ('warning' if avg >= 50 else 'danger') }}"
+                     data-width="{{ [avg|int, 100]|min }}" style="width:0%;height:8px;border-radius:10px;"></div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p style="color:var(--text-secondary);font-size:.875rem;padding:1.5rem;">No quiz data yet. <a href="{{ url_for('quiz') }}">Start a quiz to see your breakdown →</a></p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ── Strong & Weak Areas ── -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem;">
+
+    <div class="card" style="border-color:var(--success);">
+      <div class="card-header" style="color:var(--success);border-bottom-color:var(--success);">💪 Strong Topics (Avg ≥ 70%)</div>
+      <div class="card-body">
+        {% if completed_topics %}
+        <div style="display:flex;flex-wrap:wrap;gap:.5rem;">
+          {% for t in completed_topics %}
+          <span class="badge-pill" style="background:#D1FAE5;color:#065F46;border:none;">✅ {{ t }}</span>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p style="color:var(--text-secondary);font-size:.875rem;">Keep practicing – your strong topics will appear here.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card" style="border-color:var(--danger);">
+      <div class="card-header" style="color:var(--danger);border-bottom-color:var(--danger);">📌 Needs Practice (Avg &lt; 70%)</div>
+      <div class="card-body">
+        {% if weak_topics %}
+        <div style="display:flex;flex-wrap:wrap;gap:.5rem;">
+          {% for t in weak_topics %}
+          <a href="{{ url_for('quiz', topic=t, difficulty='easy') }}"
+             class="badge-pill" style="background:#FEE2E2;color:#991B1B;border:none;text-decoration:none;">
+            🔄 {{ t }}
+          </a>
+          {% endfor %}
+        </div>
+        <p style="font-size:.78rem;color:var(--text-secondary);margin-top:.75rem;">Click a topic to practice it!</p>
+        {% else %}
+        <p style="color:var(--text-secondary);font-size:.875rem;">You're doing great on all attempted topics! 🌟</p>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Activity Overview ── -->
+  <div class="card">
+    <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;">
+      📋 Activity Overview
+      <span style="font-size:.8rem;color:var(--text-secondary);">Last 30 days</span>
+    </div>
+    <div class="card-body">
+      {% if activity_count > 0 %}
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;text-align:center;">
+        <div>
+          <div style="font-size:2rem;font-weight:800;color:var(--primary);">{{ activity_count }}</div>
+          <div style="font-size:.875rem;color:var(--text-secondary);">Study Sessions</div>
+        </div>
+        <div>
+          <div style="font-size:2rem;font-weight:800;color:var(--success);">{{ total_hours }}h</div>
+          <div style="font-size:.875rem;color:var(--text-secondary);">Total Hours Logged</div>
+        </div>
+        <div>
+          <div style="font-size:2rem;font-weight:800;color:var(--warning);">{{ quiz_count }}</div>
+          <div style="font-size:.875rem;color:var(--text-secondary);">Quizzes Taken</div>
+        </div>
+      </div>
+      {% else %}
+      <p style="color:var(--text-secondary);font-size:.875rem;text-align:center;padding:1rem 0;">
+        No activity in the last 30 days. <a href="{{ url_for('checkin') }}">Log your first session →</a>
+      </p>
+      {% endif %}
+    </div>
+    <div class="card-footer">
+      <a href="{{ url_for('recommendations') }}" class="btn btn-primary btn-sm">💡 View Recommendations</a>
+      <a href="{{ url_for('checkin') }}"          class="btn btn-secondary btn-sm" style="float:right;">✅ Log Today's Session</a>
+    </div>
+  </div>
+
+</div>
+</div>
+{% endblock %}

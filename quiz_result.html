@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Quiz Results – LearnFlow AI{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+<div class="page-content" style="max-width:800px;margin:0 auto;">
+
+  <!-- Score banner -->
+  <div style="background:linear-gradient(135deg,{% if score >= 70 %}var(--success),#34D399{% elif score >= 50 %}var(--warning),#FBBF24{% else %}var(--danger),#F87171{% endif %});border-radius:var(--radius-xl);padding:2rem;color:#fff;text-align:center;margin-bottom:1.5rem;">
+    <div style="font-size:3.5rem;font-weight:800;line-height:1;">{{ score }}%</div>
+    <div style="font-size:1.1rem;font-weight:600;margin-top:.5rem;">
+      {{ correct }} / {{ total }} correct
+    </div>
+    <div style="opacity:.85;margin-top:.25rem;">{{ topic }} &nbsp;·&nbsp; {{ difficulty.title() }}</div>
+    <div style="margin-top:1rem;background:rgba(255,255,255,.2);border-radius:20px;padding:.4rem 1rem;display:inline-block;font-size:.875rem;">
+      ⚡ +{{ xp_earned }} XP earned
+    </div>
+  </div>
+
+  <!-- New badges -->
+  {% if new_badges %}
+  <div class="alert alert-success" style="margin-bottom:1rem;">
+    🎉 <strong>New Badge{{ 's' if new_badges|length > 1 }}!</strong>
+    {% for b in new_badges %}{{ b }}{% if not loop.last %}, {% endif %}{% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Strong / Weak areas -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+    <div class="card" style="border-color:var(--success);">
+      <div class="card-body">
+        <div style="font-size:.78rem;font-weight:700;color:var(--success);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.4rem;">💪 Strong Area</div>
+        <div style="font-weight:700;">{{ strong or 'Keep practicing!' }}</div>
+      </div>
+    </div>
+    <div class="card" style="border-color:var(--danger);">
+      <div class="card-body">
+        <div style="font-size:.78rem;font-weight:700;color:var(--danger);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.4rem;">📌 Needs Practice</div>
+        <div style="font-weight:700;">{{ weak or 'Great performance!' }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Personalized recommendation -->
+  <div class="card" style="margin-bottom:1.5rem;border-color:{% if drift_color == 'success' %}var(--success){% elif drift_color == 'warning' %}var(--warning){% else %}var(--danger){% endif %};">
+    <div class="card-header">
+      💡 Personalized Recommendation
+      <span class="drift-badge {{ drift_color }}" style="float:right;font-size:.72rem;">{{ drift_status }}</span>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;gap:.6rem;margin-bottom:.6rem;">
+        <span>📌</span><div><div style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--text-secondary);">Recommended Action</div><div style="font-weight:700;">{{ rec_action }}</div></div>
+      </div>
+      <div style="display:flex;gap:.6rem;margin-bottom:.6rem;">
+        <span>💡</span><div><div style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--text-secondary);">Why</div><div style="color:var(--text-secondary);">{{ rec_reason }}</div></div>
+      </div>
+      <div style="display:flex;gap:.6rem;">
+        <span>⏱️</span><div><div style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--text-secondary);">Suggested Time</div><div style="font-weight:600;">{{ rec_time }}</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Answer breakdown -->
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-header">📋 Answer Breakdown</div>
+    <div class="card-body" style="padding:0;">
+      {% for r in results %}
+      <div style="padding:1rem 1.5rem;border-bottom:{% if not loop.last %}1px solid var(--border){% else %}none{% endif %};">
+        <div style="display:flex;align-items:flex-start;gap:.75rem;">
+          <span style="font-size:1.1rem;margin-top:.1rem;">{{ '✅' if r.is_correct else '❌' }}</span>
+          <div style="flex:1;">
+            <div style="font-weight:600;margin-bottom:.5rem;">Q{{ loop.index }}. {{ r.question }}</div>
+            {% for opt in r.options %}
+            {% set i = loop.index0 %}
+            <div style="padding:.4rem .8rem;border-radius:6px;font-size:.875rem;margin-bottom:.3rem;
+              {% if i == r.correct_answer %}background:#D1FAE5;color:#065F46;font-weight:600;
+              {% elif i == r.user_answer and not r.is_correct %}background:#FEE2E2;color:#991B1B;
+              {% else %}background:var(--surface-2);{% endif %}">
+              {{ opt }}
+              {% if i == r.correct_answer %} ✓{% endif %}
+              {% if i == r.user_answer and not r.is_correct %} ← Your answer{% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Action buttons -->
+  <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+    <a href="{{ url_for('quiz', topic=topic, difficulty=difficulty) }}" class="btn btn-primary">🔄 Retake Quiz</a>
+    <a href="{{ url_for('quiz') }}"       class="btn btn-secondary">🧩 New Quiz</a>
+    <a href="{{ url_for('dashboard') }}"  class="btn btn-secondary">📊 Dashboard</a>
+    <a href="{{ url_for('analytics') }}"  class="btn btn-secondary">📈 Analytics</a>
+  </div>
+
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Learning Path – LearnFlow AI{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+<div class="page-content">
+
+  <div class="page-header">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <h1 class="page-title">🗺️ Your Learning Path</h1>
+        <p class="page-subtitle">Follow this personalized roadmap to master Machine Learning step by step.</p>
+      </div>
+      <a href="{{ url_for('quiz') }}" class="btn btn-primary">🧩 Take a Quiz</a>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 320px;gap:1.5rem;align-items:start;">
+
+    <!-- Learning Path Steps -->
+    <div>
+      <div class="card">
+        <div class="card-header">Machine Learning – Complete Roadmap</div>
+        <div class="card-body">
+          {% for step in learning_path %}
+          {% set is_completed = step.status == 'completed' %}
+          {% set is_current   = step.status == 'current' %}
+          {% set is_locked    = step.status == 'locked' %}
+
+          <div style="display:flex;gap:1.25rem;position:relative;{% if not loop.last %}padding-bottom:1.25rem;margin-bottom:1.25rem;border-bottom:1px dashed var(--border);{% endif %}">
+
+            <!-- Timeline dot -->
+            <div style="display:flex;flex-direction:column;align-items:center;">
+              <div class="path-icon-wrap {{ step.status }}" style="width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;">
+                {% if is_completed %}✅
+                {% elif is_current %}{{ step.icon }}
+                {% else %}🔒{% endif %}
+              </div>
+            </div>
+
+            <!-- Step content -->
+            <div style="flex:1;">
+              <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.3rem;">
+                <h3 style="font-size:1rem;font-weight:700;margin:0;">{{ step.topic }}</h3>
+                {% if is_completed %}
+                <span style="background:#D1FAE5;color:#065F46;padding:.15rem .6rem;border-radius:20px;font-size:.72rem;font-weight:700;">✅ Completed</span>
+                {% elif is_current %}
+                <span style="background:#EEF2FF;color:var(--primary);padding:.15rem .6rem;border-radius:20px;font-size:.72rem;font-weight:700;">🔄 In Progress</span>
+                {% else %}
+                <span style="background:var(--surface-2);color:var(--text-muted);padding:.15rem .6rem;border-radius:20px;font-size:.72rem;font-weight:600;">🔒 Locked</span>
+                {% endif %}
+              </div>
+              <p style="color:var(--text-secondary);font-size:.875rem;margin-bottom:.75rem;">{{ step.description }}</p>
+
+              <!-- Topic performance if available -->
+              {% if step.topic in topic_scores %}
+              {% set scores = topic_scores[step.topic] %}
+              {% set avg = (scores|sum / scores|length)|round(1) %}
+              <div style="margin-bottom:.6rem;">
+                <div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:.3rem;">
+                  <span style="color:var(--text-secondary);">Your average score</span>
+                  <span style="font-weight:700;color:{{ 'var(--success)' if avg >= 70 else ('var(--warning)' if avg >= 50 else 'var(--danger)') }};">{{ avg }}%</span>
+                </div>
+                <div class="progress">
+                  <div class="progress-bar {{ 'success' if avg >= 70 else ('warning' if avg >= 50 else 'danger') }}"
+                       style="width:{{ avg }}%;"></div>
+                </div>
+              </div>
+              {% endif %}
+
+              <div style="display:flex;gap:.6rem;">
+                {% if not is_locked %}
+                <a href="{{ url_for('quiz', topic=step.topic) }}" class="btn btn-sm {{ 'btn-outline-primary' if is_completed else 'btn-primary' }}">
+                  🧩 {{ 'Practice Again' if is_completed else 'Take Quiz' }}
+                </a>
+                {% endif %}
+                {% if is_current %}
+                <a href="{{ url_for('checkin') }}" class="btn btn-sm btn-secondary">✅ Log Study Session</a>
+                {% endif %}
+              </div>
+            </div>
+
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right sidebar -->
+    <div>
+      <!-- Progress summary -->
+      <div class="card" style="margin-bottom:1.25rem;">
+        <div class="card-header">📊 Path Progress</div>
+        <div class="card-body">
+          {% set completed_count = learning_path | selectattr('status', 'equalto', 'completed') | list | length %}
+          {% set total = learning_path | length %}
+          {% set pct = ((completed_count / total) * 100) | round(0) | int %}
+          <div style="text-align:center;margin-bottom:1rem;">
+            <div style="font-size:2.5rem;font-weight:800;color:var(--primary);">{{ pct }}%</div>
+            <div style="color:var(--text-secondary);font-size:.875rem;">Path Complete</div>
+          </div>
+          <div class="progress" style="height:12px;margin-bottom:1rem;">
+            <div class="progress-bar primary" style="width:{{ pct }}%;"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;text-align:center;">
+            <div style="background:var(--surface-2);border-radius:var(--radius-sm);padding:.75rem;">
+              <div style="font-size:1.5rem;font-weight:800;color:var(--success);">{{ completed_count }}</div>
+              <div style="font-size:.75rem;color:var(--text-secondary);">Completed</div>
+            </div>
+            <div style="background:var(--surface-2);border-radius:var(--radius-sm);padding:.75rem;">
+              <div style="font-size:1.5rem;font-weight:800;color:var(--text-muted);">{{ total - completed_count }}</div>
+              <div style="font-size:.75rem;color:var(--text-secondary);">Remaining</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Subjects covered -->
+      <div class="card" style="margin-bottom:1.25rem;">
+        <div class="card-header">📚 Subjects You're Studying</div>
+        <div class="card-body">
+          {% set subjects = ['Python', 'Machine Learning', 'Data Structures', 'Statistics', 'Mathematics'] %}
+          {% for subject in subjects %}
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:.6rem 0;border-bottom:1px solid var(--border);">
+            <span style="font-size:.875rem;font-weight:600;">{{ subject }}</span>
+            {% if subject in topic_scores %}
+            {% set avg = (topic_scores[subject]|sum / topic_scores[subject]|length)|round(1) %}
+            <span style="font-size:.82rem;font-weight:700;color:{{ 'var(--success)' if avg >= 70 else ('var(--warning)' if avg >= 50 else 'var(--danger)') }};">
+              {{ avg }}%
+            </span>
+            {% else %}
+            <span style="font-size:.78rem;color:var(--text-muted);">Not started</span>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Quick links -->
+      <div class="card">
+        <div class="card-header">⚡ Quick Actions</div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:.6rem;">
+          <a href="{{ url_for('quiz') }}"      class="btn btn-primary">🧩 Take a Quiz</a>
+          <a href="{{ url_for('checkin') }}"   class="btn btn-secondary">✅ Daily Check-in</a>
+          <a href="{{ url_for('analytics') }}" class="btn btn-secondary">📈 View Analytics</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+{% endblock %}
